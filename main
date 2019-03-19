@@ -5,7 +5,7 @@ import scipy.stats as st
 
 #another line
 
-hhh = 0
+hhh = 1
 
 file = open('data.txt')
 data_in_string = file.read().replace("\n", " ").split(" ")
