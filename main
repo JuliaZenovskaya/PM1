@@ -5,7 +5,9 @@ import scipy.stats as st
 
 #another line
 
+hh = 2
 hhh = 3
+hhh += hh
 print(hhh)
 
 file = open('data.txt')
