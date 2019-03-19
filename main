@@ -18,6 +18,9 @@ max = data[len(data)-1]
 number_of_intervals = 12
 h = round((data[len(data)-1] - data[0]) / number_of_intervals, 1)
 
+ttt = 1
+print(ttt)
+
 coords_for_intervals = []
 for i in range(number_of_intervals + 1):
     coords_for_intervals.append(data[0] + i * h)
