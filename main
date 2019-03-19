@@ -1,0 +1,203 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import math
+import scipy.stats as st
+
+file = open('data.txt')
+data_in_string = file.read().replace("\n", " ").split(" ")
+data = []
+for i in range(len(data_in_string)-1):
+    data.append(float(data_in_string[i]))
+data_copy = data.copy()
+data.sort()
+min = data[0]
+max = data[len(data)-1]
+
+number_of_intervals = 12
+h = round((data[len(data)-1] - data[0]) / number_of_intervals, 1)
+
+coords_for_intervals = []
+for i in range(number_of_intervals + 1):
+    coords_for_intervals.append(data[0] + i * h)
+
+amount_of_elements = len(data)
+interval_frequency = [0] * number_of_intervals
+relative_interval_frequency = [0] * number_of_intervals
+j = 0
+for i in range(amount_of_elements):
+    if data[i] <= coords_for_intervals[j + 1]:
+        interval_frequency[j] += 1
+    else:
+        relative_interval_frequency[j] = interval_frequency[j] / amount_of_elements
+        if j < number_of_intervals-1:
+            j += 1
+            interval_frequency[j] += 1
+relative_interval_frequency[len(relative_interval_frequency) - 1] = interval_frequency[len(interval_frequency) - 1] / amount_of_elements
+
+OX = [0] * (number_of_intervals + 1)
+OY = [0] * number_of_intervals
+for i in range(len(OX)):
+    OX[i] = coords_for_intervals[i]
+for i in range(len(OY)):
+    OY[i] = relative_interval_frequency[i]/h
+
+fig = plt.figure()
+plt.style.use("bmh")
+ind = np.arange(len(OY))
+plt.bar(ind, OY, width=0.9)
+plt.xticks(ind - 1 / 2, OX)
+fig.autofmt_xdate()
+plt.yticks(OY)
+plt.tick_params(axis='y', which='major', labelsize=7)
+plt.title("Histogram")
+plt.show()
+
+midpoint_coords = [0] * number_of_intervals
+for i in range(0, number_of_intervals):
+    midpoint_coords[i] = (coords_for_intervals[i + 1] + coords_for_intervals[i]) / 2
+
+frequency_distribution = [0] * number_of_intervals
+frequency_distribution[0] = relative_interval_frequency[0]
+for i in range(1, number_of_intervals):
+    frequency_distribution[i] = frequency_distribution[i - 1] + relative_interval_frequency[i]
+
+OP = [0] * (number_of_intervals + 1)
+OX = [0] * (number_of_intervals + 2)
+for i in range(number_of_intervals):
+    OP[i+1] = frequency_distribution[i]
+OX[0] = midpoint_coords[0] - h
+OX[len(OX)-1] = midpoint_coords[len(midpoint_coords) - 1] + h
+for i in range(number_of_intervals):
+    OX[i+1] = midpoint_coords[i]
+plt.style.use("bmh")
+plt.xlim(midpoint_coords[0], midpoint_coords[len(midpoint_coords) - 1])
+plt.ylim([-0.05, 1.05])
+plt.xticks(OX)
+for i in range(number_of_intervals + 1):
+    plt.plot([OX[i], OX[i + 1]], [OP[i], OP[i]], color='firebrick')
+plt.title("График эмпирической функции распределения")
+plt.show()
+
+expected_value = 0
+for i in range(number_of_intervals):
+    expected_value += midpoint_coords[i] * relative_interval_frequency[i]
+
+m0 = 0
+for i in range(number_of_intervals):
+    m0 += ((midpoint_coords[i] - expected_value) ** 2) * interval_frequency[i]
+dispersion = m0 / amount_of_elements
+
+standart_deviation = math.sqrt(dispersion)
+standart_error = standart_deviation / math.sqrt(amount_of_elements)
+
+mediana = (data[round(amount_of_elements / 2)]+data[round(amount_of_elements / 2)+1])/2
+
+partition_to_calculate_moda = []
+partition_number = round(data[len(data) - 1] - data[0])
+for i in range(partition_number + 1):
+    partition_to_calculate_moda.append(data[0] + i)
+number_of_element = [0] * partition_number
+j = 0
+for i in range(amount_of_elements):
+    if data[i] == partition_to_calculate_moda[j]:
+        number_of_element[j] += 1
+    else:
+        if j < partition_number-1:
+            j += 1
+            number_of_element[j] += 1
+number_of_element_copy = number_of_element.copy()
+number_of_element_copy.sort()
+moda = []
+for i in range(partition_number):
+    if number_of_element[i] == number_of_element_copy[len(number_of_element_copy) - 1]:
+        moda.append(partition_to_calculate_moda[i])
+
+third_kvart = (data[round(3 * amount_of_elements / 4)]+data[round(3 * amount_of_elements / 4)+1])/2
+second_kvart = (data[round(amount_of_elements / 2)]+data[round(amount_of_elements / 2)+1])/2
+first_kvart = (data[round(amount_of_elements / 4)]+data[round(amount_of_elements / 4)+1])/2
+
+print(first_kvart, second_kvart, third_kvart)
+
+plt.boxplot(data, vert=False)
+plt.show()
+
+m = 0
+for i in range(number_of_intervals):
+    m += ((midpoint_coords[i] - expected_value) ** 3) * interval_frequency[i]
+mom = m / amount_of_elements
+coefficient_of_asymmetry = mom/(standart_deviation ** 3)
+
+m = 0
+for i in range(number_of_intervals):
+    m += ((expected_value - midpoint_coords[i]) ** 4) * interval_frequency[i]
+mom = m / amount_of_elements
+coefficient_of_kurtosis = mom / (dispersion ** 2) - 3
+
+print('Минимум: ', min)
+print('Максимум: ', max)
+print('Среднее значение выборки: ', expected_value)
+print('Медиана: ', mediana)
+print('Мода: ', moda)
+print('Дисперсия: ', dispersion)
+print('Стандартное отклонение: ', standart_deviation)
+print('Стандартная ошибка: ', standart_error)
+print('Эксцесс: ', coefficient_of_kurtosis)
+print('Ассиметричность: ', coefficient_of_asymmetry)
+
+y = 0.95
+t = 1.95
+left_board_for_expected_value = expected_value - t * math.sqrt(m0 / amount_of_elements)
+right_board_for_expected_value = expected_value + t * math.sqrt(m0 / amount_of_elements)
+left_board_for_standart_deviation = standart_deviation - t * math.sqrt(m0 / amount_of_elements)
+right_board_for_standart_deviation = standart_deviation + t * math.sqrt(m0 / amount_of_elements)
+
+print('Доверительный интервал для математического ожидания: (', left_board_for_expected_value,
+      ';', right_board_for_expected_value, ')')
+print('Доверительный интервал для стандартного отклонения: (', left_board_for_standart_deviation,
+      ';', right_board_for_standart_deviation, ')')
+
+theoretical_frequency = []
+Fz = []
+for i in range(len(interval_frequency)):
+    z = (midpoint_coords[i] - expected_value) / standart_deviation
+    Fz.append(st.norm.cdf(z))
+theoretical_frequency.append(Fz[0])
+for i in range(1, len(interval_frequency)):
+    theoretical_frequency.append(Fz[i] - Fz[i - 1])
+
+new_interval_frequency = []
+new_coords_for_intervals = []
+new_theoretical_frequency = []
+new_coords_for_intervals.append(data[0])
+i = 0
+while i < number_of_intervals:
+    sum_for_interval_frequency = interval_frequency[i]
+    sum_for_theoretical_frequency = theoretical_frequency[i]
+    while sum_for_interval_frequency < 8:
+        if i < number_of_intervals-1:
+            i += 1
+            sum_for_interval_frequency += interval_frequency[i]
+            sum_for_theoretical_frequency += theoretical_frequency[i]
+        else:
+            break
+    new_theoretical_frequency.append(sum_for_theoretical_frequency)
+    new_coords_for_intervals.append(coords_for_intervals[i + 1])
+    new_interval_frequency.append(sum_for_interval_frequency)
+    i += 1
+
+new_interval_frequency2 = []
+for i in range(len(new_interval_frequency)):
+    new_interval_frequency2.append(new_interval_frequency[i] ** 2)
+
+NP = []
+for i in range(len(new_theoretical_frequency)):
+    NP.append(amount_of_elements*new_theoretical_frequency[i])
+
+sum_for_pearson = 0
+for i in range(len(new_theoretical_frequency)):
+    sum_for_pearson += new_interval_frequency2[i] / NP[i]
+pearson_coefficient = sum_for_pearson - amount_of_elements
+
+print('Коэффициент Пирсона: ', pearson_coefficient)
+
+
