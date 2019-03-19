@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import scipy.stats as st
+
 #another line
+
 file = open('data.txt')
 data_in_string = file.read().replace("\n", " ").split(" ")
 data = []
