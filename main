@@ -89,7 +89,7 @@ dispersion = m0 / amount_of_elements
 
 standart_deviation = math.sqrt(dispersion)
 standart_error = standart_deviation / math.sqrt(amount_of_elements)
-
+#new line for git
 mediana = (data[round(amount_of_elements / 2)]+data[round(amount_of_elements / 2)+1])/2
 
 partition_to_calculate_moda = []
